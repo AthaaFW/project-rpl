@@ -1,26 +1,47 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+@theme {
+  --color-green-nav: #86A789;
+  --color-green-sidebar: #D2E3C8;
+  --color-krem-acsent: #FFF9E5;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Jura;
+  overflow-x: hidden;
+}
+
+ul{
+  list-style: none;
+}
+
+.login-page{
+  background: url("../images/doodad.png");
+}
+
+/* staff.css */
+
+/* Wrapper animasi */
+.form-slide {
+  transition: transform 0.5s ease-out;
+}
+
+/* Pergi ke kiri */
+.off-left {
+  transform: translateX(-100%);
+}
+
+/* Pergi ke kanan */
+.off-right {
+  transform: translateX(200%);
+}
+
+/* Masuk dari kanan */
+.enter-right {
+  transform: translateX(0);
 }
