@@ -7,14 +7,19 @@ import { RowPerawatan } from "./smth";
 export default function PerawatanTable() {
   const [data, setData] = useState<any[]>([]);
   const [edited, setEdited] = useState({});
+  const [saved, setSaved] = useState({});
 
-  useEffect(() => {
+  const getPerawatan = ()=>{
     fetch("/api/pasien")
       .then((res) => res.json())
       .then((result) => {
         console.log("DATA JSON :", JSON.stringify(result, null, 2));
         setData(result);
       });
+  }
+
+  useEffect(() => {
+    getPerawatan();
   }, []);
 
 
@@ -47,6 +52,8 @@ export default function PerawatanTable() {
         [field]: value
       }
     }));
+
+    setSaved(false);
   };
 
   const formatDate = (date) => {
@@ -54,6 +61,24 @@ export default function PerawatanTable() {
     return new Date(date).toISOString().split("T")[0];
   };
 
+  const deletePerawatan = async (id: string) =>{
+    if (!confirm("Yakin ingin menghapus staff ini?")) return;
+    try{
+      fetch("api/pasien", {
+        method:"DELETE",
+        headers:{
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id_perawatan:id
+        }),
+      });
+      getPerawatan();
+      console.log("DELETE SUCCESS");
+    }catch(error){
+      console.log("DELETE GAGAL:", error)
+    }
+  }
 
   return (
     <div className="p-6">
@@ -84,7 +109,9 @@ export default function PerawatanTable() {
             setField={setField}
             updatePerawatan={updatePerawatan}
             formatDate={formatDate}
-            setEdited={setEdited}
+            saved={saved}
+            setSaved={setSaved}
+            deletePerawatan={deletePerawatan}
           />
           ))}
 

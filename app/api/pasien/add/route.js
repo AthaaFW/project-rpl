@@ -94,50 +94,63 @@ export async function POST(req) {
     } = body;
     console.log("get body json");
 
-    // Wajib FORMAT tanggal
-    const tglMasuk = new Date(); 
+    // Format tanggal
+    const tglMasuk = new Date();
     const sqlDate = tglMasuk.toISOString().slice(0, 19).replace("T", " ");
+    
     console.log("Parsing ID Perawatan");
     const id_perawatan = generateIdPerawatan(nik_pasien);
     console.log("Done");
 
     await conn.beginTransaction();
-    console.log('begin transaction');
-    // ---------------- INSERT PASIEN ----------------
-    await conn.execute(
-      `INSERT INTO tb_pasien 
-      (nik_pasien, nama_pasien, alamat_pasien, templa_pasien, tglla_pasien, jk_pasien, goldar_pasien, bpjs_pasien)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        nik_pasien ?? null,
-        nama_pasien ?? null,
-        alamat_pasien ?? null,
-        templa_pasien ?? null,
-        tglla_pasien ?? null,
-        jk_pasien ?? null,
-        goldar_pasien ?? null,
-        bpjs_pasien ?? null,
-      ]
-    );
-    console.log("INSERT pasien");
+    console.log("begin transaction");
 
-    // ---------------- INSERT PERAWATAN ----------------
+    // CEK PASIEN
+    const [cache] = await conn.execute(
+      `SELECT * FROM tb_pasien WHERE nik_pasien=?`,
+      [nik_pasien]
+    );
+
+    console.log("cache rows:", cache);
+
+    // INSERT PASIEN JIKA BELUM ADA
+    if (cache.length === 0) {
+      await conn.execute(
+        `INSERT INTO tb_pasien 
+        (nik_pasien, nama_pasien, alamat_pasien, templa_pasien, tglla_pasien, jk_pasien, goldar_pasien, bpjs_pasien)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          nik_pasien ?? null,
+          nama_pasien ?? null,
+          alamat_pasien ?? null,
+          templa_pasien ?? null,
+          tglla_pasien ?? null,
+          jk_pasien ?? null,
+          goldar_pasien ?? null,
+          bpjs_pasien ?? null,
+        ]
+      );
+      console.log("INSERT pasien");
+    }
+
+    // INSERT PERAWATAN
+    console.log("perawatan");
     await conn.execute(
       `INSERT INTO tb_perawatan 
-      (id_perawatan ,nik_pasien, id_staff, id_ruangan, tgl_masuk, tgl_keluar, status)
-      VALUES (?,?, ?, ?, ?, ?, ?)`,
+      (id_perawatan, nik_pasien, id_staff, id_ruangan, tgl_masuk, tgl_keluar, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         id_perawatan,
         nik_pasien ?? null,
-        penanganan_pasien, // pastikan ini id_staff
-        null,                      // karena '-' ERROR jika INT
+        penanganan_pasien, 
+        null,
         sqlDate,
         null,
         "Pending",
       ]
     );
 
-    console.log("INSERT Perawatan");
+    console.log("INSERT perawatan");
 
     await conn.commit();
     console.log("conn.commit");
@@ -148,10 +161,10 @@ export async function POST(req) {
     await conn.rollback();
     return Response.json(
       { success: false, error: error.message },
-      { status: 500 },
-      { body },
+      { status: 500 }
     );
   } finally {
     conn.release();
   }
 }
+

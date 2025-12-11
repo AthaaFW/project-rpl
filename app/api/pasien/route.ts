@@ -48,7 +48,7 @@ export async function PUT(req: Request){
     const body = await req.json();
     const { id_perawatan, status, id_ruangan, tgl_keluar } = body;
 
-    const [result] = db.query(
+    const [result] = await db.query(
       'UPDATE tb_perawatan SET status = ?, id_ruangan = ?, tgl_keluar = ? WHERE id_perawatan = ?',
       [
         status,
@@ -66,5 +66,42 @@ export async function PUT(req: Request){
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
     });
+  }
+}
+
+
+export async function DELETE(req) {
+  try{
+    const body = await req.json();
+    const { id_perawatan } =  body;
+
+    if (!id_perawatan) {
+      return Response.json(
+        { success: false, error: "id_perawatan wajib dikirim" },
+        { status: 400 }
+      );
+    }
+
+    const [result] = await db.query(
+      'DELETE FROM tb_perawatan WHERE id_perawatan=?',
+      [id_perawatan]
+    );
+
+    if (result.affectedRows === 0) {
+      return Response.json(
+        { success: false, error: "Perawatan tidak ditemukan" },
+        { status: 404 }
+      );
+    }
+
+    return Response.json(
+      { success: true, message: "Data perawatan berhasil dihapus" },
+      { status: 200 }
+    );
+  }catch(error){
+    return Response.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
   }
 }

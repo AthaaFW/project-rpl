@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/nav";
 import Sidebar from "@/components/sidebar";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function AddStaff() {
+export default function EditStaff() {
     const router = useRouter();
+    const params = useSearchParams();
+    const id = params.get("id");
+
 
     const [form, setForm] = useState({
         nik_staff: "",
@@ -20,47 +23,52 @@ export default function AddStaff() {
         email_staff: "",
         password_staff: "",
         role_staff: "",
+        status_staff: "",
     });
 
     const update = (key, value) => {
         setForm(prev => ({ ...prev, [key]: value }));
     };
 
-    // 🔍 Auto-fill data berdasarkan NIK
-    const handleNIKBlur = async () => {
-        if (!form.nik_staff.trim()) return;
+    // 🔄 Ambil data staff berdasarkan ID
+    const fetchStaff = async () => {
+        const res = await fetch(`/api/staff?id_staff=${id}`);
+        const data = await res.json();
 
-        try {
-            const res = await fetch(`/api/pasien/add?nik=${form.nik_staff}`);
-            const data = await res.json();
+        if (res.ok) {
+            setForm({
+                nik_staff: data.nik_staff,
+                nama_staff: data.nama_staff,
+                templa_staff: data.templa_staff,
+                tglla_staff: data.tglla_staff,
+                goldar_staff: data.goldar_staff,
+                jk_staff: data.jk_staff,
 
-            if (res.ok) {
-                setForm(prev => ({
-                    ...prev,
-                    nama_staff: data.nama,
-                    templa_staff: data.tempatLahir,
-                    tglla_staff: data.tglLahir,
-                    jk_staff: data.jenisKelamin,
-                    goldar_staff: data.golDarah,
-                }));
-            }
-        } catch (err) {
-            console.log(err);
+                email_staff: data.email_staff,
+                password_staff: data.password_staff,
+                role_staff: data.role_staff,
+                status_staff: data.status_staff,
+            });
         }
+        console.log(form);
     };
 
-    // 📤 Submit form
+    useEffect(() => {
+        if (id) fetchStaff();
+    }, [id]);
+
+    // 📤 Submit Update
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const res = await fetch("/api/staff", {
-            method: "POST",
+        const res = await fetch(`/api/staff?id_staff=${id}`, {
+            method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(form)
+            body: JSON.stringify(form),
         });
 
         const data = await res.json();
-        console.log("Response API:", data);
+        console.log("API Result:", data);
 
         router.push("/staff");
     };
@@ -69,21 +77,18 @@ export default function AddStaff() {
         <div className="pl-72 pt-25">
             <Navbar />
             <Sidebar />
-            <h1 className="text-2xl font-bold">Tambah Staff</h1>
+            <h1 className="text-2xl font-bold">Edit Data Staff</h1>
 
             <form onSubmit={handleSubmit}>
                 <div className="max-w-2xl mx-auto mt-5 p-6 rounded-xl shadow border border-gray-300">
 
-                    {/* NIK */}
+                    {/* NIK (READONLY) */}
                     <label className="block font-semibold mb-1">NIK Staff</label>
                     <input
                         type="text"
-                        className="w-full mb-4 border border-gray-400 rounded px-3 py-2 bg-white"
-                        placeholder="Masukkan NIK"
+                        className="w-full mb-4 border border-gray-400 rounded px-3 py-2 bg-gray-100"
                         value={form.nik_staff}
-                        onChange={(e) => update("nik_staff", e.target.value)}
-                        onBlur={handleNIKBlur}
-                        required
+                        readOnly
                     />
 
                     {/* Nama */}
@@ -96,9 +101,10 @@ export default function AddStaff() {
                         required
                     />
 
+                    {/* Grup 2 kolom */}
                     <div className="grid grid-cols-2 gap-4">
 
-                        {/* Tempat Lahir */}
+                        {/* Tempat & Tanggal Lahir */}
                         <div>
                             <label className="block font-semibold mb-1">Tempat Lahir</label>
                             <input
@@ -108,7 +114,6 @@ export default function AddStaff() {
                                 onChange={(e) => update("templa_staff", e.target.value)}
                             />
 
-                            {/* Tanggal Lahir */}
                             <input
                                 type="date"
                                 className="w-full border border-gray-400 rounded px-3 py-2 bg-white"
@@ -117,7 +122,7 @@ export default function AddStaff() {
                             />
                         </div>
 
-                        {/* Golongan Darah */}
+                        {/* Golongan Darah + Jenis Kelamin */}
                         <div>
                             <label className="block font-semibold mb-1">Golongan Darah</label>
                             <input
@@ -127,7 +132,6 @@ export default function AddStaff() {
                                 onChange={(e) => update("goldar_staff", e.target.value)}
                             />
 
-                            {/* Jenis Kelamin */}
                             <label className="block font-semibold mt-3 mb-1">Jenis Kelamin</label>
                             <div className="flex items-center gap-4">
                                 <label className="flex items-center gap-2">
@@ -159,7 +163,6 @@ export default function AddStaff() {
                     <input
                         type="email"
                         className="w-full border border-gray-400 rounded px-3 py-2 bg-white mb-4"
-                        placeholder="email@gmail.com"
                         value={form.email_staff}
                         onChange={(e) => update("email_staff", e.target.value)}
                         required
@@ -178,7 +181,7 @@ export default function AddStaff() {
                     {/* Role */}
                     <label className="block font-semibold mb-1">Role</label>
                     <select
-                        className="w-full border border-gray-400 rounded px-3 py-2 bg-white"
+                        className="w-full border border-gray-400 rounded px-3 py-2 bg-white mb-4"
                         value={form.role_staff}
                         onChange={(e) => update("role_staff", e.target.value)}
                         required
@@ -189,13 +192,25 @@ export default function AddStaff() {
                         <option value="Admin">Admin</option>
                     </select>
 
+                    {/* Status */}
+                    <label className="block font-semibold mb-1">Status</label>
+                    <select
+                        className="w-full border border-gray-400 rounded px-3 py-2 bg-white"
+                        value={form.status_staff}
+                        onChange={(e) => update("status_staff", e.target.value)}
+                        required
+                    >
+                        <option value="Aktif">Aktif</option>
+                        <option value="Nonaktif">Nonaktif</option>
+                    </select>
+
                     {/* Tombol */}
                     <div className="flex justify-end gap-4 mt-6">
                         <Link href="/staff" className="bg-red-700 text-white px-5 py-2 rounded-lg shadow">
                             Cancel
                         </Link>
                         <button className="bg-green-700 text-white px-5 py-2 rounded-lg shadow">
-                            Submit
+                            Update
                         </button>
                     </div>
 
