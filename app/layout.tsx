@@ -1,6 +1,10 @@
+'use client';
+
 import type { Metadata } from "next";
 import { Jura  } from "next/font/google";
 import "./globals.css";
+
+export const dynamic = "force-dynamic";
 
 const juraSans = Jura({
   variable: "--font-jura-sans",
