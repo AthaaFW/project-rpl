@@ -16,6 +16,7 @@ interface PerawatanType {
   tgl_masuk?: string | null;
   tgl_keluar?: string | null;
   status?: string;
+  bpjs_pasien?: string;
 }
 
 type EditedType = Record<string, Partial<PerawatanType>>;
@@ -87,7 +88,7 @@ export default function PerawatanTable() {
   };
 
   const deletePerawatan = async (id: string) => {
-    if (!confirm("Yakin ingin menghapus staff ini?")) return;
+    if (!confirm("Yakin ingin menghapus data ini?")) return;
     try {
       await fetch("/api/pasien", {
         method: "DELETE",

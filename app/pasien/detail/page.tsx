@@ -51,7 +51,6 @@ export default function EditPasien() {
       try {
         setLoading(true);
         const res = await fetch(`/api/pasien/edit?nik_pasien=${nik_pasien}`);
-        if (!res.ok) throw new Error("Data pasien tidak ditemukan");
         const data = await res.json();
         setForm(data);
       } catch (err) {
@@ -65,21 +64,16 @@ export default function EditPasien() {
   }, [nik_pasien]);
 
   // Submit update
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.MouseEvent<HTMLElement>) => {
     e.preventDefault();
     try {
-      const res = await fetch(`/api/pasien/edit`, {
+      const res = await fetch(`/api/pasien/edit?nik_pasien=${nik_pasien}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.message || data.error || "Terjadi kesalahan");
-        return;
-      }
 
       alert("Data pasien berhasil diperbarui!");
       setDisabled(true);
@@ -105,7 +99,7 @@ export default function EditPasien() {
       <Sidebar />
       <h1 className="text-2xl font-bold mb-5">Edit Data Pasien</h1>
 
-      <form onSubmit={handleSubmit}>
+      <form>
         <div className="max-w-2xl mx-auto mt-5 p-6 rounded-xl shadow border border-gray-300">
 
           {/* NIK */}
@@ -240,8 +234,9 @@ export default function EditPasien() {
                 </button>
               ) : (
                 <button
-                  type="submit"
+                  type="button"
                   className="bg-green-700 text-white px-5 py-2 rounded-lg shadow"
+                  onClick={async(e)=>{handleSubmit(e)}}
                 >
                   Save
                 </button>

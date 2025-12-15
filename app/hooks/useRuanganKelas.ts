@@ -6,7 +6,6 @@ export function useRuanganKelas(kelas_pasien: string | null) {
   const [data, setData] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!kelas_pasien) return; // jika belum ada kelas, jangan fetch
 
     fetch(`/api/ruanganByNik?kelas_pasien=${kelas_pasien}`)
       .then((res) => res.json())

@@ -9,4 +9,5 @@ export interface PerawatanType {
   tgl_masuk?: string | null;
   tgl_keluar?: string | null;
   status?: string;
+  bpjs_pasien?: string;
 }

@@ -6,10 +6,12 @@ export async function GET(req: Request) {
     const kelas_pasien = searchParams.get("kelas_pasien");
 
     if (!kelas_pasien) {
-      return Response.json(
-        { success: false, error: "kelas_pasien wajib dikirim" },
-        { status: 400 }
-      );
+      const rows = await sql`
+      SELECT *
+      FROM tb_ruangan
+    `;
+
+    return Response.json(rows, { status: 200 });
     }
 
     const rows = await sql`

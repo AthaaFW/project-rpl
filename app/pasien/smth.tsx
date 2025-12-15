@@ -35,7 +35,7 @@ export function RowPerawatan({
   setSaved,
   deletePerawatan,
 }: RowPerawatanProps) {
-  const ruanganList = useRuanganKelas(row.id_ruangan ?? "");
+  const ruanganList = useRuanganKelas(row.bpjs_pasien ?? "");
 
   const fieldValue = (key: keyof PerawatanType) => {
     const val = edited[key] ?? row[key];

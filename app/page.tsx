@@ -30,7 +30,7 @@ export default function LoginPage() {
       }
 
       // Login berhasil → redirect
-      router.push("/pasien");
+      router.push("/intro");
     } catch (err) {
       console.error("Login error:", err);
       setErrorMsg("Terjadi kesalahan saat login.");
