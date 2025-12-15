@@ -1,10 +1,10 @@
-'use client';
+
 
 import type { Metadata } from "next";
 import { Jura  } from "next/font/google";
 import "./globals.css";
+import { Suspense } from "react";
 
-export const dynamic = "force-dynamic";
 
 const juraSans = Jura({
   variable: "--font-jura-sans",
@@ -23,11 +23,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <Suspense>
       <body
         className={`${juraSans.variable} antialiased`}
       >
         {children}
       </body>
+      </Suspense>
     </html>
   );
 }
