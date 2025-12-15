@@ -2,34 +2,39 @@
 
 import Image from "next/image";
 import bg from "@/images/doodad.png";
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [errorMsg, setErrorMsg] = useState<string>("");
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const res = await fetch("/api/staff/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch("/api/staff/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
+      const data: { message?: string } = await res.json();
 
-    if (!res.ok) {
-      setErrorMsg(data.message || "Login gagal");
-      return;
+      if (!res.ok) {
+        setErrorMsg(data.message || "Login gagal");
+        return;
+      }
+
+      // Login berhasil → redirect
+      router.push("/pasien");
+    } catch (err) {
+      console.error("Login error:", err);
+      setErrorMsg("Terjadi kesalahan saat login.");
     }
-
-    // Login berhasil → redirect
-    router.push("/pasien");
   };
 
   return (
@@ -69,6 +74,7 @@ export default function LoginPage() {
               placeholder="example@gmail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
 
@@ -81,6 +87,7 @@ export default function LoginPage() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
 
@@ -90,7 +97,10 @@ export default function LoginPage() {
           )}
 
           {/* Submit */}
-          <button className="bg-green-nav text-white py-2 rounded-md hover:opacity-70 font-bold transition">
+          <button
+            type="submit"
+            className="bg-green-nav text-white py-2 rounded-md hover:opacity-70 font-bold transition"
+          >
             Sign in
           </button>
         </form>

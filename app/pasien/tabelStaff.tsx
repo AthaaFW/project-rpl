@@ -4,26 +4,47 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { RowPerawatan } from "./smth";
 
-export default function PerawatanTable() {
-  const [data, setData] = useState<any[]>([]);
-  const [edited, setEdited] = useState({});
-  const [saved, setSaved] = useState({});
+// ✅ Define types
+interface PerawatanType {
+  id_perawatan: string;
+  nik_pasien: string;
+  nama_pasien: string;
+  id_staff?: string | null;
+  nama_staff?: string | null;
+  id_ruangan?: string | null;
+  nama_ruangan?: string | null;
+  tgl_masuk?: string | null;
+  tgl_keluar?: string | null;
+  status?: string;
+}
 
-  const getPerawatan = ()=>{
+type EditedType = Record<string, Partial<PerawatanType>>;
+type SavedType = Record<string, boolean>;
+
+export default function PerawatanTable() {
+  const [data, setData] = useState<PerawatanType[]>([]);
+  const [edited, setEdited] = useState<EditedType>({});
+  const [saved, setSaved] = useState<SavedType>({});
+
+  const getPerawatan = () => {
     fetch("/api/pasien")
       .then((res) => res.json())
-      .then((result) => {
+      .then((result: PerawatanType[]) => {
         console.log("DATA JSON :", JSON.stringify(result, null, 2));
         setData(result);
       });
-  }
+  };
 
   useEffect(() => {
     getPerawatan();
   }, []);
 
-
-  const updatePerawatan = async (id: String, newStatus: String, newRuangan: String, tgl_keluar:Date) => {
+  const updatePerawatan = async (
+    id: string,
+    newStatus: string,
+    newRuangan: string | null,
+    tgl_keluar: string | null
+  ) => {
     try {
       const res = await fetch("/api/pasien", {
         method: "PUT",
@@ -34,7 +55,7 @@ export default function PerawatanTable() {
           id_perawatan: id,
           status: newStatus,
           id_ruangan: newRuangan,
-          tgl_keluar: tgl_keluar
+          tgl_keluar,
         }),
       });
       const result = await res.json();
@@ -44,41 +65,45 @@ export default function PerawatanTable() {
     }
   };
 
-  const setField = (id, field, value) => {
-    setEdited(prev => ({
+  const setField = <K extends keyof PerawatanType>(
+    id: string,
+    field: K,
+    value: PerawatanType[K]
+  ) => {
+    setEdited((prev) => ({
       ...prev,
       [id]: {
         ...prev[id],
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
 
-    setSaved(false);
+    setSaved((prev) => ({ ...prev, [id]: false }));
   };
 
-  const formatDate = (date) => {
+  const formatDate = (date?: string | null) => {
     if (!date) return "";
     return new Date(date).toISOString().split("T")[0];
   };
 
-  const deletePerawatan = async (id: string) =>{
+  const deletePerawatan = async (id: string) => {
     if (!confirm("Yakin ingin menghapus staff ini?")) return;
-    try{
-      fetch("api/pasien", {
-        method:"DELETE",
-        headers:{
-          "Content-Type": "application/json"
+    try {
+      await fetch("/api/pasien", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          id_perawatan:id
+          id_perawatan: id,
         }),
       });
       getPerawatan();
       console.log("DELETE SUCCESS");
-    }catch(error){
-      console.log("DELETE GAGAL:", error)
+    } catch (error) {
+      console.log("DELETE GAGAL:", error);
     }
-  }
+  };
 
   return (
     <div className="p-6">
@@ -105,13 +130,13 @@ export default function PerawatanTable() {
             key={row.id_perawatan}
             row={row}
             index={index}
-            edited={edited}
-            setField={setField}
+            edited={edited[row.id_perawatan] || {}}
+            setField={(id, field, value) => setField(id, field, value)}
+            setSaved={setSaved}
             updatePerawatan={updatePerawatan}
             formatDate={formatDate}
-            saved={saved}
-            setSaved={setSaved}
-            deletePerawatan={deletePerawatan}
+            saved={!!saved[row.id_perawatan]}
+            deletePerawatan={() => deletePerawatan(row.id_perawatan)}
           />
           ))}
 
@@ -124,7 +149,6 @@ export default function PerawatanTable() {
           )}
         </tbody>
       </table>
-
     </div>
   );
 }

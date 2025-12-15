@@ -6,12 +6,23 @@ import Sidebar from "@/components/sidebar";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-export default function EditPasien() {
+interface FormType {
+  nik_pasien: string;
+  nama_pasien: string;
+  alamat_pasien: string;
+  templa_pasien: string;
+  tglla_pasien: string;
+  jk_pasien: string;
+  goldar_pasien: string;
+  bpjs_pasien: string;
+  penanganan_pasien: string;
+}
 
+export default function EditPasien() {
   const searchParams = useSearchParams();
   const nik_pasien = searchParams.get("nik_pasien");
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormType>({
     nik_pasien: "",
     nama_pasien: "",
     alamat_pasien: "",
@@ -23,22 +34,23 @@ export default function EditPasien() {
     penanganan_pasien: ""
   });
 
-  const [disabled, setDisabled] = useState(true); // ⬅ default non-editable
+  const [disabled, setDisabled] = useState(true);
 
-  const update = (key, value) => {
+  const update = <K extends keyof FormType>(key: K, value: FormType[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  // 🔥 Ambil data pasien berdasarkan NIK
+  // Ambil data pasien berdasarkan NIK
   useEffect(() => {
     if (!nik_pasien) return;
 
     const fetchData = async () => {
       try {
         const res = await fetch(`/api/pasien/edit?nik_pasien=${nik_pasien}`);
+        if (!res.ok) throw new Error("Data pasien tidak ditemukan");
         const data = await res.json();
 
-        setForm(data);  // ⬅ isi form otomatis
+        setForm(data);
       } catch (error) {
         console.error("Fetch error:", error);
       }
@@ -47,24 +59,30 @@ export default function EditPasien() {
     fetchData();
   }, [nik_pasien]);
 
-  // 🔥 Submit update
-  const handleSubmit = async (e) => {
+  // Submit update
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const res = await fetch(`/api/pasien/edit`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(form),
-    });
+    try {
+      const res = await fetch(`/api/pasien/edit`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form)
+      });
 
-    const data = await res.json();
-    console.log("UPDATE RESULT:", data);
+      const data = await res.json();
 
-    alert("Data pasien berhasil diperbarui!");
+      if (!res.ok) {
+        alert(data.message || data.error || "Terjadi kesalahan");
+        return;
+      }
 
-    setDisabled(true); // ⬅ disable kembali setelah save
+      alert("Data pasien berhasil diperbarui!");
+      setDisabled(true);
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan saat update");
+    }
   };
 
   return (
@@ -97,7 +115,6 @@ export default function EditPasien() {
 
           {/* Grid 2 kolom */}
           <div className="grid grid-cols-2 gap-4">
-
             {/* Alamat */}
             <div>
               <label className="block font-semibold mb-1">Alamat</label>
@@ -129,17 +146,14 @@ export default function EditPasien() {
                 onChange={(e) => update("tglla_pasien", e.target.value)}
               />
             </div>
-
           </div>
 
           {/* Grid 2 kolom */}
           <div className="grid grid-cols-2 gap-4 mt-4">
-
             {/* Jenis kelamin */}
             <div>
               <label className="block font-semibold mb-1">Jenis Kelamin</label>
               <div className="flex items-center gap-4">
-
                 <label className="flex items-center gap-2">
                   <input
                     type="radio"
@@ -161,7 +175,6 @@ export default function EditPasien() {
                   />
                   <span>Perempuan</span>
                 </label>
-
               </div>
             </div>
 
@@ -176,13 +189,12 @@ export default function EditPasien() {
                 onChange={(e) => update("goldar_pasien", e.target.value)}
               />
             </div>
-
           </div>
 
           {/* BPJS + Penanganan */}
-          <div className="flex flex-row min-w-full gap-10 justify-between items-center">
+          <div className="flex flex-row min-w-full gap-10 justify-between items-center mt-4">
             <div className="w-[49%]">
-              <label className="block font-semibold mb-1">Kelas Ruangan</label>
+              <label className="block font-semibold mb-1">Kelas BPJS</label>
               <select
                 className="w-full border border-gray-400 rounded px-3 py-2"
                 disabled={disabled}
@@ -197,38 +209,35 @@ export default function EditPasien() {
               </select>
             </div>
 
-            <div className="flex justify-end gap-4 mt-6">
-
-            <Link href="/pasien" className="bg-red-700 text-white px-5 py-2 rounded-lg shadow">
-              Cancel
-            </Link>
-
             {/* Tombol Edit / Save */}
-            {disabled ? (
-              <button
-                type="button"
-                onClick={(e) => {
-                    e.preventDefault();
-                    setDisabled(false);
-                }}
-                className="bg-blue-600 text-white px-5 py-2 rounded-lg shadow"
+            <div className="flex justify-end gap-4 mt-6">
+              <Link
+                href="/pasien"
+                className="bg-red-700 text-white px-5 py-2 rounded-lg shadow"
               >
-                Edit
-              </button>
-            ) : (
-              <button className="bg-green-700 text-white px-5 py-2 rounded-lg shadow">
-                Save
-              </button>
-            )}
-          </div>
-          </div>
+                Cancel
+              </Link>
 
-          {/* Tombol */}
-          
-
+              {disabled ? (
+                <button
+                  type="button"
+                  onClick={() => setDisabled(false)}
+                  className="bg-blue-600 text-white px-5 py-2 rounded-lg shadow"
+                >
+                  Edit
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  className="bg-green-700 text-white px-5 py-2 rounded-lg shadow"
+                >
+                  Save
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </form>
-
     </div>
   );
 }

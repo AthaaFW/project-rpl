@@ -20,10 +20,17 @@ export async function GET(req: Request) {
     `;
 
     return Response.json(rows, { status: 200 });
-  } catch (error) {
-    console.error("GET tb_ruangan error:", error);
+  } catch (error: unknown) {
+    console.error("GET tb_pasien error:", error);
+  
     return Response.json(
-      { success: false, error: error.message },
+      {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : String(error), // fallback kalau bukan instance Error
+      },
       { status: 500 }
     );
   }

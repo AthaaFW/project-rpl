@@ -4,6 +4,7 @@ import Navbar from "@/components/nav";
 import Sidebar from "@/components/sidebar";
 import { useState } from "react";
 import Link from "next/link";
+import React from "react";
 
 export default function Home() {
   const [form, setForm] = useState({
@@ -12,7 +13,7 @@ export default function Home() {
     kapasitas: ""
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const res = await fetch("/api/ruangan", {

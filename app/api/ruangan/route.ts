@@ -35,9 +35,8 @@ export async function GET(req: Request) {
     );
   }
 }
-/* =======================
-   POST RUANGAN
-======================= */
+
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -190,9 +189,17 @@ export async function DELETE(req: Request) {
       { success: true, message: "Data ruangan berhasil dihapus" },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error("GET tb_pasien error:", error);
+  
     return Response.json(
-      { success: false, error: error.message },
+      {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : String(error), // fallback kalau bukan instance Error
+      },
       { status: 500 }
     );
   }

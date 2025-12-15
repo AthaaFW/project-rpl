@@ -48,10 +48,17 @@ export async function GET(req:Request) {
       },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("GET tb_pasien error:", error);
+  
     return Response.json(
-      { success: false, error: error.message },
+      {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : String(error), // fallback kalau bukan instance Error
+      },
       { status: 500 }
     );
   }
@@ -79,13 +86,13 @@ export async function PUT(req:Request) {
       );
     }
 
-    let formattedDate = null;
-    if (tglla_pasien) {
-      const d = new Date(tglla_pasien);
-      if (!isNaN(d)) {
-        formattedDate = d.toISOString().split("T")[0];
-      }
-    }
+    let formattedDate: string | null = null;
+if (tglla_pasien) {
+  const d = new Date(tglla_pasien);
+  if (!isNaN(d.getTime())) {
+    formattedDate = d.toISOString().split("T")[0]; // "YYYY-MM-DD"
+  }
+}
 
     const result = await sql`
       UPDATE tb_pasien
@@ -100,7 +107,7 @@ export async function PUT(req:Request) {
       WHERE nik_pasien = ${nik_pasien}
     `;
 
-    if (result.rowCount === 0) {
+    if (result.length === 0) {
       return Response.json(
         { success: false, error: "Pasien tidak ditemukan" },
         { status: 404 }
@@ -111,10 +118,17 @@ export async function PUT(req:Request) {
       { success: true, message: "Data pasien berhasil diperbarui" },
       { status: 200 }
     );
-  } catch (error) {
-    console.error("PUT tb_pasien error:", error);
+  } catch (error: unknown) {
+    console.error("GET tb_pasien error:", error);
+  
     return Response.json(
-      { success: false, error: error.message },
+      {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : String(error), // fallback kalau bukan instance Error
+      },
       { status: 500 }
     );
   }
