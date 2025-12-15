@@ -20,8 +20,6 @@ interface FormType {
   penanganan_pasien: string;
 }
 
-
-
 export default function EditPasien() {
   const searchParams = useSearchParams();
   const nik_pasien = searchParams.get("nik_pasien");
@@ -35,28 +33,31 @@ export default function EditPasien() {
     jk_pasien: "",
     goldar_pasien: "",
     bpjs_pasien: "",
-    penanganan_pasien: ""
+    penanganan_pasien: "",
   });
 
   const [disabled, setDisabled] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   const update = <K extends keyof FormType>(key: K, value: FormType[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  // Ambil data pasien berdasarkan NIK
+  // Fetch data client-side
   useEffect(() => {
     if (!nik_pasien) return;
 
     const fetchData = async () => {
       try {
+        setLoading(true);
         const res = await fetch(`/api/pasien/edit?nik_pasien=${nik_pasien}`);
         if (!res.ok) throw new Error("Data pasien tidak ditemukan");
         const data = await res.json();
-
         setForm(data);
-      } catch (error) {
-        console.error("Fetch error:", error);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -66,12 +67,11 @@ export default function EditPasien() {
   // Submit update
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     try {
       const res = await fetch(`/api/pasien/edit`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
+        body: JSON.stringify(form),
       });
 
       const data = await res.json();
@@ -88,6 +88,16 @@ export default function EditPasien() {
       alert("Terjadi kesalahan saat update");
     }
   };
+
+  if (loading) {
+    return (
+      <div className="pl-72 pt-25">
+        <Navbar />
+        <Sidebar />
+        <p className="p-4 text-gray-600">Loading pasien...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="pl-72 pt-25">
@@ -133,7 +143,6 @@ export default function EditPasien() {
             {/* Tempat / Tgl lahir */}
             <div>
               <label className="block font-semibold mb-1">Tempat/Tgl Lahir</label>
-
               <input
                 type="text"
                 className="w-full mb-2 border border-gray-400 rounded px-3 py-2"
@@ -141,7 +150,6 @@ export default function EditPasien() {
                 value={form.templa_pasien}
                 onChange={(e) => update("templa_pasien", e.target.value)}
               />
-
               <input
                 type="date"
                 className="w-full border border-gray-400 rounded px-3 py-2"
