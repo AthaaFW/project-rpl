@@ -1,6 +1,6 @@
 import { sql } from "@/lib/db";
 
-export async function GET(req) {
+export async function GET(req:Request) {
   try {
     const { searchParams } = new URL(req.url);
     const nik_pasien = searchParams.get("nik_pasien");
@@ -57,7 +57,7 @@ export async function GET(req) {
   }
 }
 
-export async function PUT(req) {
+export async function PUT(req:Request) {
   try {
     const body = await req.json();
 
