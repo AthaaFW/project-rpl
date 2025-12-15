@@ -60,6 +60,14 @@ export default function Home() {
             body: JSON.stringify(form)
         });
         const data = await res.json();
+
+        
+        if (!res.ok) {
+        // ❌ Jika duplicate atau error lain
+            alert(data.message || data.error || "Terjadi kesalahan");
+            return;
+        }
+  
         console.log("Response API:", data);
         router.push("/pasien");
     }

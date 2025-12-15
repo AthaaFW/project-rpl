@@ -8,17 +8,23 @@ import ScrollToTopButton from "@/components/scrollToTop";
 import Link from "next/link";
 import { Trash, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Query } from "@neondatabase/serverless";
 
 export default function StaffPage() {
   const router = useRouter();
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const getStaff = async () => {
+  const getStaff = async (query = "") => {
     setLoading(true);
-    const res = await fetch("/api/staff");
-    const data = await res.json();
-    setStaff(data);
+    const res = await fetch(
+      query
+        ? `/api/staff?search=${encodeURIComponent(query)}`
+        : `/api/staff`
+    );
+
+    const result = await res.json();
+    setStaff(result);
     setLoading(false);
   };
 
@@ -27,17 +33,17 @@ export default function StaffPage() {
   }, []);
 
   const deleteStaff = async (id) => {
-    if (!confirm("Yakin ingin menghapus staff ini?")) return;
+    if (!confirm("Testing Gk boleh hapus akun staff!")) return;
 
-    await fetch(`/api/staff?id_staff=${id}`, {
-      method: "DELETE",
-    });
+    // await fetch(`/api/staff?id_staff=${id}`, {
+    //   method: "DELETE",
+    // });
 
     getStaff();
   };
 
-  const handleSearch = (text: string) => {
-    console.log("Cari:", text);
+  const handleSearch = (query: string) => {
+    getStaff(query);
   };
 
   return (

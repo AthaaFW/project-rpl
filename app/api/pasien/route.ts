@@ -1,9 +1,11 @@
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const search = searchParams.get("search") ?? ""; // ambil query search
 
-    const [rows] = await db.query(`
+    const rows = await sql`
       SELECT 
         p.id_perawatan,
         p.nik_pasien,
@@ -28,52 +30,27 @@ export async function GET() {
         ON p.id_staff = st.id_staff
       LEFT JOIN tb_ruangan r 
         ON p.id_ruangan = r.id_ruangan
+      WHERE ps.nama_pasien ILIKE ${`%${search}%`} 
+         OR st.nama_staff ILIKE ${`%${search}%`} 
+         OR r.nama_ruangan ILIKE ${`%${search}%`}
       ORDER BY p.tgl_masuk DESC
-    `);
+    `;
 
-    return new Response(JSON.stringify(rows), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-    });
+    return Response.json(rows, { status: 200 });
+  } catch (error: any) {
+    console.error("GET tb_perawatan error:", error);
+    return Response.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
   }
 }
 
-export async function PUT(req: Request){
-  try{
+
+export async function PUT(req: Request) {
+  try {
     const body = await req.json();
     const { id_perawatan, status, id_ruangan, tgl_keluar } = body;
-
-    const [result] = await db.query(
-      'UPDATE tb_perawatan SET status = ?, id_ruangan = ?, tgl_keluar = ? WHERE id_perawatan = ?',
-      [
-        status,
-        id_ruangan ?? null,
-        tgl_keluar ?? null,
-        id_perawatan
-      ]
-    );
-
-    return new Response(JSON.stringify(result), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    });
-  }catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-    });
-  }
-}
-
-
-export async function DELETE(req) {
-  try{
-    const body = await req.json();
-    const { id_perawatan } =  body;
 
     if (!id_perawatan) {
       return Response.json(
@@ -82,12 +59,57 @@ export async function DELETE(req) {
       );
     }
 
-    const [result] = await db.query(
-      'DELETE FROM tb_perawatan WHERE id_perawatan=?',
-      [id_perawatan]
-    );
+    // PostgreSQL: empty string is INVALID for date
+    const keluarDate =
+      tgl_keluar && tgl_keluar !== "" ? tgl_keluar : null;
 
-    if (result.affectedRows === 0) {
+    const result = await sql`
+      UPDATE tb_perawatan
+      SET
+        status = ${status},
+        id_ruangan = ${id_ruangan ?? null},
+        tgl_keluar = ${keluarDate}
+      WHERE id_perawatan = ${id_perawatan}
+    `;
+
+    if (result.rowCount === 0) {
+      return Response.json(
+        { success: false, error: "Perawatan tidak ditemukan" },
+        { status: 404 }
+      );
+    }
+
+    return Response.json(
+      { success: true, message: "Perawatan berhasil diperbarui" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("PUT tb_perawatan error:", error);
+    return Response.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const body = await req.json();
+    const { id_perawatan } = body;
+
+    if (!id_perawatan) {
+      return Response.json(
+        { success: false, error: "id_perawatan wajib dikirim" },
+        { status: 400 }
+      );
+    }
+
+    const result = await sql`
+      DELETE FROM tb_perawatan
+      WHERE id_perawatan = ${id_perawatan}
+    `;
+
+    if (result.rowCount === 0) {
       return Response.json(
         { success: false, error: "Perawatan tidak ditemukan" },
         { status: 404 }
@@ -98,7 +120,8 @@ export async function DELETE(req) {
       { success: true, message: "Data perawatan berhasil dihapus" },
       { status: 200 }
     );
-  }catch(error){
+  } catch (error) {
+    console.error("DELETE tb_perawatan error:", error);
     return Response.json(
       { success: false, error: error.message },
       { status: 500 }

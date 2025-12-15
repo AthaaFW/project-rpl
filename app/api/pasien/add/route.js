@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET(request) {
@@ -13,11 +13,15 @@ export async function GET(request) {
       );
     }
 
-    // Ambil data dari dummyktp
-    const [rows] = await db.execute(
-      "SELECT * FROM dummyktp WHERE nik = ? LIMIT 1",
-      [nik]
-    );
+    // Ambil data dari dummyktp (Neon)
+    const rows = await sql`
+      SELECT *
+      FROM dummyktp
+      WHERE nik = ${nik}
+      LIMIT 1
+    `;
+
+    console.log(rows[0]);
 
     if (rows.length === 0) {
       return Response.json(
@@ -28,28 +32,29 @@ export async function GET(request) {
 
     const r = rows[0];
 
-    let formatted = "";
-    if (r.tglLahir) {
-      const d = new Date(r.tglLahir);
-      const day = String(d.getDate()).padStart(2, "0");
-      const month = String(d.getMonth() + 1).padStart(2, "0");
-      const year = d.getFullYear();
-      formatted = `${year}-${month}-${day}`;
-    }
+let formatted = "";
+if (r.tgllahir) {
+  const d = new Date(r.tgllahir);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  formatted = `${year}-${month}-${day}`;
+}
 
-    return Response.json(
-      {
-        success: true,
-        nama: r.nama,
-        alamat: r.alamat,
-        tempatLahir: r.tempatLahir,
-        tglLahir: formatted,
-        jenisKelamin: r.jenisKelamin,
-        golDarah: r.golDarah,
-        bpjs: r.bpjs,
-      },
-      { status: 200 }
-    );
+return Response.json(
+  {
+    success: true,
+    nama: r.nama,
+    alamat: r.alamat,
+    tempatLahir: r.tempatlahir,
+    tglLahir: formatted,
+    jenisKelamin: r.jeniskelamin,
+    golDarah: r.goldarah,
+    bpjs: r.bpjs,
+  },
+  { status: 200 }
+);
+
 
   } catch (error) {
     return Response.json(
@@ -58,6 +63,9 @@ export async function GET(request) {
     );
   }
 }
+
+
+
 
 function generateIdPerawatan(nik) {
   const now = new Date();
@@ -74,13 +82,8 @@ function generateIdPerawatan(nik) {
 
 
 export async function POST(req) {
-  console.log("await connection");
-  const conn = await db.getConnection();
-  console.log("get connection");
-
   try {
     const body = await req.json();
-
     const {
       nik_pasien,
       nama_pasien,
@@ -92,79 +95,80 @@ export async function POST(req) {
       bpjs_pasien,
       penanganan_pasien,
     } = body;
-    console.log("get body json");
 
-    // Format tanggal
-    const tglMasuk = new Date();
-    const sqlDate = tglMasuk.toISOString().slice(0, 19).replace("T", " ");
-    
-    console.log("Parsing ID Perawatan");
     const id_perawatan = generateIdPerawatan(nik_pasien);
-    console.log("Done");
 
-    await conn.beginTransaction();
-    console.log("begin transaction");
+    // ==== CEK DUPLIKAT PERAWATAN HARI INI ====
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // set ke awal hari
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
 
-    // CEK PASIEN
-    const [cache] = await conn.execute(
-      `SELECT * FROM tb_pasien WHERE nik_pasien=?`,
-      [nik_pasien]
-    );
+    const duplicate = await sql`
+      SELECT 1 FROM tb_perawatan
+      WHERE nik_pasien = ${nik_pasien}
+        AND tgl_masuk >= ${today}
+        AND tgl_masuk < ${tomorrow}
+    `;
 
-    console.log("cache rows:", cache);
-
-    // INSERT PASIEN JIKA BELUM ADA
-    if (cache.length === 0) {
-      await conn.execute(
-        `INSERT INTO tb_pasien 
-        (nik_pasien, nama_pasien, alamat_pasien, templa_pasien, tglla_pasien, jk_pasien, goldar_pasien, bpjs_pasien)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          nik_pasien ?? null,
-          nama_pasien ?? null,
-          alamat_pasien ?? null,
-          templa_pasien ?? null,
-          tglla_pasien ?? null,
-          jk_pasien ?? null,
-          goldar_pasien ?? null,
-          bpjs_pasien ?? null,
-        ]
+    if (duplicate.length > 0) {
+      return Response.json(
+        { success: false, message: "Data sudah ada" },
+        { status: 400 }
       );
-      console.log("INSERT pasien");
     }
 
-    // INSERT PERAWATAN
-    console.log("perawatan");
-    await conn.execute(
-      `INSERT INTO tb_perawatan 
+    await sql`BEGIN`;
+
+    // ==== CEK PASIEN ====
+    const cache = await sql`
+      SELECT 1 FROM tb_pasien
+      WHERE nik_pasien = ${nik_pasien}
+    `;
+
+    if (cache.length === 0) {
+      await sql`
+        INSERT INTO tb_pasien
+        (nik_pasien, nama_pasien, alamat_pasien, templa_pasien, tglla_pasien, jk_pasien, goldar_pasien, bpjs_pasien)
+        VALUES (
+          ${nik_pasien},
+          ${nama_pasien},
+          ${alamat_pasien},
+          ${templa_pasien},
+          ${tglla_pasien || null},
+          ${jk_pasien},
+          ${goldar_pasien},
+          ${bpjs_pasien}
+        )
+      `;
+    }
+
+    // ==== INSERT PERAWATAN ====
+    await sql`
+      INSERT INTO tb_perawatan
       (id_perawatan, nik_pasien, id_staff, id_ruangan, tgl_masuk, tgl_keluar, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        id_perawatan,
-        nik_pasien ?? null,
-        penanganan_pasien, 
-        null,
-        sqlDate,
-        null,
-        "Pending",
-      ]
-    );
+      VALUES (
+        ${id_perawatan},
+        ${nik_pasien},
+        ${penanganan_pasien},
+        ${null},
+        ${new Date()},
+        ${null},
+        ${"Pending"}
+      )
+    `;
 
-    console.log("INSERT perawatan");
-
-    await conn.commit();
-    console.log("conn.commit");
+    await sql`COMMIT`;
 
     return Response.json({ success: true });
 
   } catch (error) {
-    await conn.rollback();
+    await sql`ROLLBACK`;
     return Response.json(
       { success: false, error: error.message },
       { status: 500 }
     );
-  } finally {
-    conn.release();
   }
 }
+
 

@@ -16,7 +16,7 @@ export default function AddStaff() {
         tglla_staff: "",
         goldar_staff: "",
         jk_staff: "",
-
+        alamat_staff:"",
         email_staff: "",
         password_staff: "",
         role_staff: "",
@@ -34,6 +34,12 @@ export default function AddStaff() {
             const res = await fetch(`/api/pasien/add?nik=${form.nik_staff}`);
             const data = await res.json();
 
+            if (!res.ok) {
+                // jika API mengembalikan error / duplikat
+                alert(data.message || "Terjadi kesalahan saat update");
+                return;
+              }
+
             if (res.ok) {
                 setForm(prev => ({
                     ...prev,
@@ -42,6 +48,7 @@ export default function AddStaff() {
                     tglla_staff: data.tglLahir,
                     jk_staff: data.jenisKelamin,
                     goldar_staff: data.golDarah,
+                    alamat_staff: data.alamat
                 }));
             }
         } catch (err) {
@@ -153,6 +160,15 @@ export default function AddStaff() {
                         </div>
 
                     </div>
+                    <label className="block font-semibold mb-1">Alamat Staff</label>
+                    <textarea
+                        className="w-full mb-4 border border-gray-400 rounded px-3 py-2 bg-white"
+                        rows={3}
+                        placeholder="Masukkan alamat lengkap"
+                        value={form.alamat_staff}
+                        onChange={(e) => update("alamat_staff", e.target.value)}
+                        required
+                    />
 
                     {/* Email */}
                     <label className="block font-semibold mt-4 mb-1">Email Staff</label>

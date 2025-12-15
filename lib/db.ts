@@ -1,8 +1,3 @@
-import mysql from "mysql2/promise";
+import { neon } from "@neondatabase/serverless";
 
-export const db = mysql.createPool({
-    host: "localhost",
-    user: "root",
-    password: "",
-    database: "db_rpl",
-});
+export const sql = neon(process.env.DATABASE_URL!);

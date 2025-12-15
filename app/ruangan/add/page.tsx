@@ -24,6 +24,11 @@ export default function Home() {
     });
 
     const data = await res.json();
+    if (!res.ok) {
+      // ❌ Duplicate atau error lain
+      alert(data.message || data.error || "Terjadi kesalahan");
+      return;
+    }
     console.log("Response API:", data);
 
     // redirect setelah submit

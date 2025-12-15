@@ -1,25 +1,30 @@
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 
-export async function GET(req){
-    try{
-        const { searchParams } = new URL(req.url);
-        const kelas_pasien = searchParams.get("kelas_pasien");
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const kelas_pasien = searchParams.get("kelas_pasien");
 
-        const [rows] = await db.execute(
-            "SELECT * FROM tb_ruangan WHERE kelas_ruangan=? AND ketersediaan_ruangan=?",
-            [
-                kelas_pasien,
-                "Tersedia"
-            ]
-        );
-        
-        return new Response(JSON.stringify(rows), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          });
-    }catch (error) {
-        return new Response(JSON.stringify({ error: error.message }), {
-          status: 500,
-        });
-      }
+    if (!kelas_pasien) {
+      return Response.json(
+        { success: false, error: "kelas_pasien wajib dikirim" },
+        { status: 400 }
+      );
+    }
+
+    const rows = await sql`
+      SELECT *
+      FROM tb_ruangan
+      WHERE kelas_ruangan = ${kelas_pasien}
+        AND ketersediaan_ruangan = 'Tersedia'
+    `;
+
+    return Response.json(rows, { status: 200 });
+  } catch (error) {
+    console.error("GET tb_ruangan error:", error);
+    return Response.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
 }

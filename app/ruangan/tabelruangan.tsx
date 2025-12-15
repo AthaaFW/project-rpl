@@ -25,25 +25,47 @@ export default function TabelRuangan() {
       id_ruangan: ruangan.id_ruangan,
       nama_ruangan: ruangan.nama_ruangan,
       kelas_ruangan: ruangan.kelas_ruangan,
-      kapasitas: ruangan.kapasitas
+      kapasitas: ruangan.kapasitas,
+      isi_ruangan:ruangan.isi_ruangan
     });
   };
 
   const saveEdit = async () => {
     if (!editedRow) return;
-    if(editedRow.isi_ruangan != 0) return console.log("Pastikan ruangan kosong sebelum edit");
-
-    await fetch(`/api/ruangan?id_ruangan=${editedRow.id_ruangan}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(editedRow),
-    });
-    getRuangan(); // refresh data
+  
+    if (editedRow.isi_ruangan != 0) {
+      return alert("Pastikan ruangan kosong sebelum edit");
+    }
+  
+    try {
+      const res = await fetch(`/api/ruangan?id_ruangan=${editedRow.id_ruangan}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editedRow),
+      });
+  
+      const data = await res.json();
+  
+      if (!res.ok) {
+        // jika API mengembalikan error / duplikat
+        alert(data.message || "Terjadi kesalahan saat update");
+        return;
+      }
+  
+      // sukses
+      alert("Ruangan berhasil diperbarui");
+      getRuangan(); // refresh data
+      setEditedRow(null);
+  
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan server");
+    }
   };
 
   const deleteRuangan =  async(id: String, isi_ruangan: number)=>{
     if (!id) return;
-    if(isi_ruangan != 0) return console.log("Pastikan ruangan kosong sebelum edit");
+    if(isi_ruangan != 0) return alert("Pastikan ruangan kosong sebelum hapus!");
 
     await fetch(`/api/ruangan?id_ruangan=${id}`, {
       method: "DELETE",
@@ -141,9 +163,8 @@ export default function TabelRuangan() {
                 <td className="p-3 flex gap-3">
                   {isEditing ? (
                     <button
-                      onClick={()=>{
-                        saveEdit;
-                        setEditedRow(null);
+                      onClick={async()=>{
+                        await saveEdit();
                       }}
                       className="px-3 py-3 bg-green-500 hover:bg-green-600 text-white rounded-md shadow"
                     >
