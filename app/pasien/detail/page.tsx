@@ -6,6 +6,8 @@ import Sidebar from "@/components/sidebar";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 interface FormType {
   nik_pasien: string;
   nama_pasien: string;
@@ -17,6 +19,8 @@ interface FormType {
   bpjs_pasien: string;
   penanganan_pasien: string;
 }
+
+
 
 export default function EditPasien() {
   const searchParams = useSearchParams();

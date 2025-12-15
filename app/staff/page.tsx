@@ -9,6 +9,9 @@ import Link from "next/link";
 import { Trash, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+
+export const dynamic = "force-dynamic";
+
 // Staff type
 interface StaffType {
   id_staff: string;

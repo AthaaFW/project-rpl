@@ -6,6 +6,9 @@ import Sidebar from "@/components/sidebar";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
+
+export const dynamic = "force-dynamic";
+
 interface StaffForm {
   nik_staff: string;
   nama_staff: string;
