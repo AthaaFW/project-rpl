@@ -37,7 +37,7 @@ export default function Sidebar() {
       </div>
 
       {/* MENU LIST */}
-      <ul
+      <Link href="/pasien"
         className={`text-xl flex flex-row justify-between items-center w-52 
         rounded-lg p-2 cursor-pointer
         ${
@@ -46,11 +46,11 @@ export default function Sidebar() {
             : "bg-transparent"
         }`}
       >
-        <Link href="/pasien">Pasien</Link>
+        <h1>Pasien</h1>
         <Image src={Arrow} alt="arrow" className="w-3 h-3" />
-      </ul>
+      </Link>
 
-      <ul
+      <Link href="/ruangan"
         className={`text-xl flex flex-row justify-between items-center w-52 
         rounded-lg p-2 cursor-pointer
         ${
@@ -59,11 +59,11 @@ export default function Sidebar() {
             : "bg-transparent"
         }`}
       >
-        <Link href="/ruangan">Ruangan</Link>
+        <h1>Ruangan</h1>
         <Image src={Arrow} alt="arrow" className="w-3 h-3" />
-      </ul>
+      </Link>
 
-      <ul
+      <Link href="/staff"
         className={`text-xl flex flex-row justify-between items-center w-52 
         rounded-lg p-2 cursor-pointer
         ${
@@ -72,9 +72,9 @@ export default function Sidebar() {
             : "bg-transparent"
         }`}
       >
-        <Link href="/staff">Staff</Link>
+        <h1>Staff</h1>
         <Image src={Arrow} alt="arrow" className="w-3 h-3" />
-      </ul>
+      </Link>
 
     </div>
   );

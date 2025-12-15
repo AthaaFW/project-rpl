@@ -72,7 +72,6 @@ export default function StaffPage() {
       <Sidebar />
 
       <div className="flex flex-row justify-between items-center">
-        <SearchBar onSearch={handleSearch} />
         <Link href="/staff/add">
           <button className="mr-4 text-white bg-green-nav px-4 py-2 font-bold text-md rounded-lg shadow-lg border-2 border-green-nav hover:opacity-80">
             Add +

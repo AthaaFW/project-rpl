@@ -186,14 +186,18 @@ export default function EditPasien() {
 
             {/* Gol Darah */}
             <div>
-              <label className="block font-semibold mb-1">Gol. Darah</label>
-              <input
-                type="text"
-                className="w-full border border-gray-400 rounded px-3 py-2"
-                disabled={disabled}
-                value={form.goldar_pasien}
-                onChange={(e) => update("goldar_pasien", e.target.value)}
-              />
+            <label className="block font-semibold mb-1">Gol. Darah</label>
+          <select
+            className="w-full mb-4 border border-gray-400 rounded px-3 py-2 bg-white"
+            value={form.goldar_pasien}
+            onChange={(e) => update("goldar_pasien", e.target.value)}
+          >
+            <option value="">-- Pilih Golongan Darah --</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="AB">AB</option>
+            <option value="O">O</option>
+          </select>
             </div>
           </div>
 

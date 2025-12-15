@@ -6,7 +6,7 @@ export function useRuanganKelas(kelas_pasien: string | null) {
   const [data, setData] = useState<any[]>([]);
 
   useEffect(() => {
-
+    
     fetch(`/api/ruanganByNik?kelas_pasien=${kelas_pasien}`)
       .then((res) => res.json())
       .then((result) => {
