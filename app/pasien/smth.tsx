@@ -24,6 +24,8 @@ interface RowPerawatanProps {
   deletePerawatan: () => void;
 }
 
+
+
 export function RowPerawatan({
   row,
   index,
@@ -36,6 +38,8 @@ export function RowPerawatan({
   deletePerawatan,
 }: RowPerawatanProps) {
   const ruanganList = useRuanganKelas(row.bpjs_pasien ?? "");
+
+  const isEdited = Object.keys(edited).length > 0;
 
   const fieldValue = (key: keyof PerawatanType) => {
     const val = edited[key] ?? row[key];
@@ -110,8 +114,9 @@ export function RowPerawatan({
       </td>
 
       {/* Aksi */}
+
       <td className="p-3 flex gap-2">
-        {!saved && edited && (
+        {isEdited && !saved && (
           <button
             onClick={async () => {
               const changes = edited;
@@ -122,7 +127,10 @@ export function RowPerawatan({
                 changes.tgl_keluar ?? row.tgl_keluar ?? null
               );
 
-              setSaved((prev) => ({ ...prev, [row.id_perawatan]: true }));
+              setSaved((prev) => ({
+                ...prev,
+                [row.id_perawatan]: true,
+              }));
             }}
             className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
           >

@@ -56,7 +56,7 @@ export default function Home() {
                 <h1 className="text-md">3. Hapus data atau tidakpun tidak masalah</h1>
             </div>
             <div className="flex flex-col">
-                <h1 className="text-xl font-bold">C. Page Ruangan</h1>
+                <h1 className="text-xl font-bold">C. Page Staff</h1>
                 <h1 className="text-md">1. Untuk melakukan add staff, klik tombol add lalu isi kolom nik dengan data yang disediakan (dipaling bawah) atau masukan nik acak 13 digit dan masukan sisa datanya secara manual sesuai format</h1>
                 <h1 className="text-md">2. Anda bisa mengubah detail staff dengan klik tombol dengan icon pensil</h1>
                 <h1 className="text-md">3. Hapus data atau tidakpun tidak masalah</h1>
